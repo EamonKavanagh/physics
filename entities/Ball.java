@@ -15,33 +15,34 @@ public class Ball extends Entity {
         aabb = new AABB(this.pos, new Vector3(r, r, r));
     }
     
-    public Vector3 getContactNormal(Entity entity) {
-        if (entity instanceof Ball) return getContactNormal((Ball) entity);
-        else if (entity instanceof Rectangle) return getContactNormal((Rectangle) entity);
+    public ContactData getContactData(Entity entity) {
+        if (entity instanceof Ball) return getContactData((Ball) entity);
+        else if (entity instanceof Rectangle) return getContactData((Rectangle) entity);
         else return null;
     }
     
-    public Vector3 getContactNormal(Ball ball) {
+    public ContactData getContactData(Ball ball) {
         Vector3 contactNormal = pos.sub(ball.pos);
-        if (contactNormal.square_magnitude() < (r + ball.r)*(r + ball.r)) {
-            contactNormal.normalize();
-            return contactNormal;
-        } else {
-            return null;
-        }
+        double depth = (r + ball.r)*(r + ball.r) - contactNormal.square_magnitude();
+        if (depth >= 0) {
+            double magnitude = contactNormal.magnitude();
+            depth = r + ball.r - magnitude;
+            contactNormal.multUpdate(1.0/magnitude);
+            return new ContactData(depth, contactNormal);
+        } else return null;
     }
     
-    public Vector3 getContactNormal(Rectangle rect) {
+    public ContactData getContactData(Rectangle rect) {
         double x, y, z;
-        x = pos.x(); y = pos.y(); z = pos.z();
-        if (x < rect.min(0)) x = rect.min(0);
-        if (x > rect.max(0)) x = rect.max(0);
-        if (y < rect.min(1)) y = rect.min(1);
-        if (y > rect.max(1)) y = rect.max(1);
-        if (z < rect.min(2)) z = rect.min(2);
-        if (z > rect.max(2)) z = rect.max(2);
-        Vector3 pt = new Vector3(x, y, z);
-        return rect.findNormal(pt);
+        Vector3 pt = rect.closestPtTo(pos);
+        double depth = r*r - pt.sub(pos).square_magnitude();
+        if (depth >= 0) {
+            double magnitude = pt.sub(pos).magnitude();
+            depth = r - magnitude;
+            return new ContactData(depth, rect.findNormal(pt));
+        }
+        else return null;
+        
     }
     
     public void draw() {

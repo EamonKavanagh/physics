@@ -41,6 +41,7 @@ public class Collision {
         private Entity a;
         private Entity b;
         private Vector3 contactNormal;
+        private double penetrationDepth;
         
         public Event(Entity a, Entity b) {
             this.a = a;
@@ -52,15 +53,16 @@ public class Collision {
         }
         
         public boolean isCollision() {
-            Vector3 normal = a.getContactNormal(b);
-            if (normal != null) {
-                setContactNormal(normal);
+            Entity.ContactData contact = a.getContactData(b);
+            if (contact != null) {
+                penetrationDepth = contact.depth;
+                contactNormal = contact.normal;
                 return true;
             } else return false;
         }
         
         public void resolve() {
-            a.resolveCollision(b, contactNormal);
+            a.resolveCollision(b, contactNormal, penetrationDepth);
         }
     }
 }

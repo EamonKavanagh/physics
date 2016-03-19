@@ -26,6 +26,13 @@ public class Vector3 {
         return z;
     }
     
+    public double coord(int i) {
+        if (i == 0)  return x;
+        else if (i == 1) return y;
+        else if (i == 2) return z;
+        else throw new IllegalArgumentException();
+    }
+    
     public void addUpdate(Vector3 v) {
         x += v.x; y += v.y; z += v.z;
     }
@@ -105,6 +112,10 @@ public class Vector3 {
     
     public void reset(double x, double y, double z) {
         this.x = x; this.y = y; this.z = z;
+    }
+    
+    public Vector3 copy() {
+        return new Vector3(x, y, z);
     }
     
     public String toString() {

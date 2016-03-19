@@ -6,11 +6,28 @@ import physics.core.*;
 public class Rectangle extends Entity {
     
     private Vector3 halfDimension;
+    private Vector3[] axes = new Vector3[3]; //Orientation of OBB axes
     
     public Rectangle(Vector3 pos, Vector3 halfDimension, double inverseMass) {
         super(inverseMass);
         this.pos = pos;
         this.halfDimension = halfDimension;
+        
+        aabb = new AABB(this.pos, this.halfDimension);
+        
+        axes[0] = new Vector3(1, 0, 0);
+        axes[1] = new Vector3(0, 1, 0);
+        axes[2] = new Vector3(0, 0, 1);
+    }
+    
+    public Rectangle(Vector3 pos, Vector3 halfDimension, double inverseMass, Vector3 u1, Vector3 u2, Vector3 u3) {
+        super(inverseMass);
+        this.pos = pos;
+        this.halfDimension = halfDimension;
+        
+        axes[0] = u1;
+        axes[1] = u2;
+        axes[2] = u3;
         
         aabb = new AABB(this.pos, this.halfDimension);
     }
@@ -29,13 +46,35 @@ public class Rectangle extends Entity {
         else throw new IllegalArgumentException();
     }
     
-    public Vector3 getContactNormal(Entity entity) {
-        if (entity instanceof Rectangle) return getContactNormal((Rectangle) entity);
-        else if (entity instanceof Ball) return ((Ball) entity).getContactNormal(this).mult(-1);
+    public Vector3 closestPtTo(Vector3 p) {
+        Vector3 d = p.sub(pos);
+        Vector3 q = pos.copy();
+        
+        // For each OBB axis...
+        for (int i = 0; i < 3; i++) {
+            // Project d onto axis to get the distance
+            double dist = d.dot(axes[i]);
+            
+            //Clamp to the box
+            if (dist > halfDimension.coord(i)) dist = halfDimension.coord(i);
+            if (dist < -halfDimension.coord(i)) dist = -halfDimension.coord(i);
+            
+            q.addUpdate(axes[i].mult(dist));
+        }
+        return q;
+    }
+    
+    public ContactData getContactData(Entity entity) {
+        if (entity instanceof Rectangle) return getContactData((Rectangle) entity);
+        else if (entity instanceof Ball) {
+            ContactData contact =  ((Ball) entity).getContactData(this);
+            contact.flip();
+            return contact;
+        }
         else return null;
     }
     
-    public Vector3 getContactNormal(Rectangle rect) {
+    public ContactData getContactData(Rectangle rect) {
         return null;
     }
     

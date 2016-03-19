@@ -9,7 +9,7 @@ public abstract class Entity {
     private int id;
     
     protected double inverseMass;
-    protected double restitution = 1;
+    protected double restitution = .95;
     
     protected Vector3 pos;
     protected Vector3 vel = new Vector3();
@@ -41,24 +41,30 @@ public abstract class Entity {
         return this.aabb.intersects(aabb);
     }
     
-    public abstract Vector3 getContactNormal(Entity entity);
+    public abstract ContactData getContactData(Entity entity);
     
     public double calcSeparatingVel(Entity entity, Vector3 contactNormal) {
         return (vel.sub(entity.vel)).dot(contactNormal);
     }
     
-    public void resolveCollision(Entity entity, Vector3 contactNormal) {
-        double separatingVel = calcSeparatingVel(entity, contactNormal);
+    public void resolveCollision(Entity that, Vector3 contactNormal, double penetrationDepth) {
+        double separatingVel = calcSeparatingVel(that, contactNormal);
         if (separatingVel > 0) return;
         
-        //RESTITUTION?
         double deltaVel = -separatingVel*(1+restitution);
         
-        double totalInverseMass = inverseMass + entity.inverseMass;
+        double totalInverseMass = this.inverseMass + that.inverseMass;
+        if (totalInverseMass <= 0) return;
+        
+        // Resolve interpenetration
+        this.pos.addUpdate(contactNormal.mult(penetrationDepth*this.inverseMass/totalInverseMass));
+        that.pos.addUpdate(contactNormal.mult(-penetrationDepth*that.inverseMass/totalInverseMass));
+        
+        // Resolve collision
         double impulse = deltaVel/totalInverseMass;
         Vector3 impulsePerMass = contactNormal.mult(impulse);
-        if (inverseMass > 0) vel.addUpdate(impulsePerMass.mult(inverseMass));
-        if (entity.inverseMass > 0) entity.vel.addUpdate(impulsePerMass.mult(-entity.inverseMass));
+        if (this.inverseMass > 0) this.vel.addUpdate(impulsePerMass.mult(this.inverseMass));
+        if (that.inverseMass > 0) that.vel.addUpdate(impulsePerMass.mult(-that.inverseMass));
     }
     
     public void addForce(Vector3 force) {
@@ -81,5 +87,21 @@ public abstract class Entity {
     public void resetAccumulators() {
         acc.reset(0, 9.81, 0);
         force.reset(0, 0, 0);
+    }
+    
+    
+    public static class ContactData {
+        
+        public final double depth;
+        public final Vector3 normal;
+
+        public ContactData(double depth, Vector3 normal) {
+            this.depth = depth;
+            this.normal = normal;
+        }
+        
+        public void flip() {
+            normal.multUpdate(-1);
+        }
     }
 }
