@@ -16,6 +16,8 @@ public class Demo {
         
         Entity[] entities = {ball, ball2, ball3, ball4, bottom, left, right};
         Engine engine = new Engine(Arrays.asList(entities), new AABB(new Vector3(.5, .5, 0), new Vector3(.5, .5, .5)));
+        
+        engine.run();
     }
     
 }

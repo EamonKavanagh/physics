@@ -17,10 +17,9 @@ public class Engine {
         for (Entity entity : entities) {
             octree.insert(entity);
         }
-        run();
     }
     
-    private void run() {
+    public void run() {
         while (true) {
             StdDraw.clear();
             update();
