@@ -68,6 +68,7 @@ public class Rectangle extends Entity {
         if (entity instanceof Rectangle) return getContactData((Rectangle) entity);
         else if (entity instanceof Ball) {
             ContactData contact =  ((Ball) entity).getContactData(this);
+            if (contact == null) return null;
             contact.flip();
             return contact;
         }
@@ -75,7 +76,13 @@ public class Rectangle extends Entity {
     }
     
     public ContactData getContactData(Rectangle rect) {
-        return null;
+        if (pos.sub(rect.pos).mult(2).isLessThan(halfDimension.add(rect.halfDimension))) {
+            System.out.println("Rect collision");
+            Vector3 pt = rect.closestPtTo(pos);
+            double depth = pos.sub(pt).magnitude();
+            Vector3 normal = rect.findNormal(pt);
+            return new ContactData(depth, normal);
+        } else return null;
     }
     
     public Vector3 findNormal(Vector3 pt) {
@@ -89,8 +96,9 @@ public class Rectangle extends Entity {
         if (pt.z() == min(2)) z = -1;
         else if (pt.z() == max(2)) z = 1;
         else z = 0;
-        return new Vector3(x, y, z);
-    
+        Vector3 normal = new Vector3(x, y, z);
+        normal.normalize();
+        return normal;
     }
     
     public void draw() {

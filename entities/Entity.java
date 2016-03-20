@@ -96,6 +96,7 @@ public abstract class Entity {
         public final Vector3 normal;
 
         public ContactData(double depth, Vector3 normal) {
+            if (normal == null) throw new NullPointerException("Normal in ContactData was null");
             this.depth = depth;
             this.normal = normal;
         }
