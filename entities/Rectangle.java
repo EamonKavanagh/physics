@@ -46,6 +46,41 @@ public class Rectangle extends Entity {
         else throw new IllegalArgumentException();
     }
     
+    private double transformToAxis(Vector3 axis) {
+        return halfDimension.x()*Math.abs(axis.dot(axes[0])) + 
+            halfDimension.y()*Math.abs(axis.dot(axes[1])) + 
+            halfDimension.z()*Math.abs(axis.dot(axes[2]));
+    }
+    
+    private boolean overlapOnAxis(Rectangle rect, Vector3 axis) {
+        double project1 = this.transformToAxis(axis);
+        double project2 = rect.transformToAxis(axis);
+        
+        Vector3 toCenter = rect.pos.sub(pos);
+        
+        double distance = Math.abs(toCenter.dot(axis));
+        
+        return (distance <= project1 + project2);
+    }
+    
+    private boolean isOverlapping(Rectangle rect) {
+        return overlapOnAxis(rect, axes[0]) &&
+            overlapOnAxis(rect, axes[1]) &&
+            overlapOnAxis(rect, axes[2]) &&
+            overlapOnAxis(rect, rect.axes[0]) &&
+            overlapOnAxis(rect, rect.axes[1]) &&
+            overlapOnAxis(rect, rect.axes[2]) &&
+            overlapOnAxis(rect, axes[0].cross(rect.axes[0])) &&
+            overlapOnAxis(rect, axes[0].cross(rect.axes[1])) &&
+            overlapOnAxis(rect, axes[0].cross(rect.axes[2])) &&
+            overlapOnAxis(rect, axes[1].cross(rect.axes[0])) &&
+            overlapOnAxis(rect, axes[1].cross(rect.axes[1])) &&
+            overlapOnAxis(rect, axes[1].cross(rect.axes[2])) &&
+            overlapOnAxis(rect, axes[2].cross(rect.axes[0])) &&
+            overlapOnAxis(rect, axes[2].cross(rect.axes[1])) &&
+            overlapOnAxis(rect, axes[2].cross(rect.axes[2]));
+    }
+    
     public Vector3 closestPtTo(Vector3 p) {
         Vector3 d = p.sub(pos);
         Vector3 q = pos.copy();
@@ -76,11 +111,10 @@ public class Rectangle extends Entity {
     }
     
     public ContactData getContactData(Rectangle rect) {
-        if (pos.sub(rect.pos).mult(2).isLessThan(halfDimension.add(rect.halfDimension))) {
-            System.out.println("Rect collision");
-            Vector3 pt = rect.closestPtTo(pos);
-            double depth = pos.sub(pt).magnitude();
-            Vector3 normal = rect.findNormal(pt);
+        if (isOverlapping(rect)) {
+            Vector3 pt1 = rect.closestPtTo(pos);
+            double depth = .0001;
+            Vector3 normal = rect.findNormal(pt1);
             return new ContactData(depth, normal);
         } else return null;
     }
@@ -107,19 +141,23 @@ public class Rectangle extends Entity {
     
     
     public static void main(String[] args) {
-        Rectangle r = new Rectangle(new Vector3(.5, .5, .5), new Vector3(.35, .1, .1), 1);
-        r.draw();
-        r.aabb.draw();
+        Rectangle r1 = new Rectangle(new Vector3(.2, .2, 1), new Vector3(.05, .1, 1), 1);
+        Rectangle r2 = new Rectangle(new Vector3(.5, .5, 1), new Vector3(.2, .05, 1), 1);
+        Rectangle r3 = new Rectangle(new Vector3(.1, .5, 1), new Vector3(.1, .04, 1), 1);
+        Rectangle r4 = new Rectangle(new Vector3(.55, .5, 1), new Vector3(.1, .1, 1), 1);
+        Rectangle r5 = new Rectangle(new Vector3(.33, .76, 1), new Vector3(.075, .025, 1), 1);
+        Rectangle r6 = new Rectangle(new Vector3(.1, .87, 1), new Vector3(.05, .03, 1), 1);
         
-        double t = 0.0;
-        double dt = .002;
-        while (t < 1) {
-            StdDraw.clear();
-            t += dt;
-            r.integrate(dt);
-            r.draw();
-            r.aabb.draw();
-            StdDraw.show(16);
+        Rectangle[] r = {r1, r2, r3, r4, r5, r6};
+        
+        for (int i = 0; i < r.length; i++) {
+            r[i].draw();
+            for (int j = i+1; j < r.length; j++) {
+                System.out.println(r[i].isOverlapping(r[j]));
+            }
         }
+        
+        System.out.println("XXXX");
+        System.out.println(r4.isOverlapping(r2));
     }
 }

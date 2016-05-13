@@ -18,7 +18,7 @@ public class Demo {
         Rectangle left = new Rectangle(new Vector3(0, .5, 1), new Vector3(.1, .399, 1), 0);
         Rectangle right = new Rectangle(new Vector3(1, .5, 1), new Vector3(.1, .399, 1), 0);
         
-        Entity[] entities = {ball, rect1, ball2, ball3, bottom, left, right};
+        Entity[] entities = {ball, ball2, ball3, bottom, left, right, rect1};
         Engine engine = new Engine(Arrays.asList(entities), new AABB(new Vector3(.5, .5, 0), new Vector3(.5, .5, .5)));
         
         engine.run();

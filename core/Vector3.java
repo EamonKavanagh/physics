@@ -85,6 +85,10 @@ public class Vector3 {
         return x*v.x + y*v.y + z*v.z;
     }
     
+    public Vector3 cross(Vector3 v) {
+        return new Vector3(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x);
+    }
+    
     public double square_magnitude() {
         return x*x + y*y + z*z;
     }
@@ -124,8 +128,12 @@ public class Vector3 {
     
     
     public static void main(String[] args) {
-        Vector3 v1 = new Vector3(.023, .21, .442);
-        Vector3 v2 = new Vector3(.05, 1, 2);
-        System.out.println(v2.add(v1));
+        Vector3 v1 = new Vector3(Math.random(), Math.random(), Math.random());
+        Vector3 v2 = new Vector3(Math.random(), Math.random(), Math.random());
+        Vector3 v3 = v1.cross(v2);
+        
+        System.out.println(v1.cross(v1));
+        System.out.println(v3.dot(v1));
+        System.out.println(v3.dot(v2));
     }
 }
